@@ -5,7 +5,7 @@ use std::{
 };
 
 fn main() {
-    day_two("day_2_input")
+    day_two("inputs/day_2_input")
 }
 
 fn day_one(reader: &BufReader<File>) {
@@ -60,7 +60,7 @@ fn day_two_part_two(reader: BufReader<File>) {
     let alphabet = ['A', 'B', 'C'];
     let mut points = 0;
     for line in reader.lines() {
-        let opponent_play = line.as_ref().unwrap().chars().nth(0).unwrap();
+        let opponent_play = line.as_ref().unwrap().chars().next().unwrap();
         let index: i32 = alphabet
             .iter()
             .position(|&r| r == opponent_play)
