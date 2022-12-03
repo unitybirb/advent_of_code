@@ -2,10 +2,11 @@ use std::{
     collections::HashMap,
     fs::File,
     io::{BufRead, BufReader},
+    str::Bytes,
 };
 
 fn main() {
-    day_two("inputs/day_2_input")
+    day_three("inputs/day_3_input")
 }
 
 fn day_one(reader: &BufReader<File>) {
@@ -78,6 +79,54 @@ fn day_two_part_two(reader: BufReader<File>) {
         }
     }
     println!("Part 2 total score: {}", points)
+}
+
+fn day_three(filename: &str) {
+    day_three_part_one(get_file(filename));
+    day_three_part_two(get_file(filename))
+}
+
+fn day_three_part_one(reader: BufReader<File>) {
+    let alphabet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ".as_bytes();
+    let mut priority = 0;
+    for line in reader.lines() {
+        let line = line.unwrap();
+        let compartments = &line.split_at(line.len() / 2);
+        let max = compartments
+            .0
+            .bytes()
+            .into_iter()
+            .filter(|x| compartments.1.bytes().any(|y| x.eq(&y)))
+            .map(|x| alphabet.iter().position(|pos| x == *pos).unwrap())
+            .max()
+            .unwrap();
+        priority += max + 1;
+        println!("Total priority: {}", priority)
+    }
+}
+
+fn day_three_part_two(reader: BufReader<File>) {
+    let alphabet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ".as_bytes();
+    let mut priority = 0;
+    let mut rucksacks: Vec<String> = Vec::new();
+    let mut iterator = 0;
+    for line in reader.lines() {
+        rucksacks.push(line.unwrap());
+        iterator += 1;
+        if iterator == 3 {
+            let rucksack_bytes: Vec<&[u8]> = rucksacks.iter().map(|x| x.as_bytes()).collect();
+            let result: usize = rucksack_bytes[0]
+                .iter()
+                .filter(|x| rucksack_bytes[1].contains(x) && rucksack_bytes[2].contains(x))
+                .map(|f| alphabet.iter().position(|pos| pos == f).unwrap())
+                .max()
+                .unwrap();
+            iterator = 0;
+            rucksacks = Vec::new();
+            priority += result + 1
+        }
+    }
+    println!("Final priority: {}", priority)
 }
 
 fn get_file(filename: &str) -> BufReader<File> {
