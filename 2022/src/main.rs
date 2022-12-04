@@ -2,11 +2,11 @@ use std::{
     collections::HashMap,
     fs::File,
     io::{BufRead, BufReader},
-    str::Bytes,
+    ops::Range,
 };
 
 fn main() {
-    day_three("inputs/day_3_input")
+    day_four("inputs/day_4_input")
 }
 
 fn day_one(reader: &BufReader<File>) {
@@ -127,6 +127,34 @@ fn day_three_part_two(reader: BufReader<File>) {
         }
     }
     println!("Final priority: {}", priority)
+}
+
+fn day_four(filename: &str) {
+    let reader = get_file(filename);
+    let mut counter_part_one = 0;
+    let mut counter_part_two = 0;
+    for line in reader.lines() {
+        let vec: Vec<i32> = line
+            .as_ref()
+            .unwrap()
+            .split(|delim| delim == ',' || delim == '-')
+            .map(|x| x.parse::<i32>().unwrap())
+            .collect::<Vec<i32>>();
+        if (vec[0] <= vec[3] && vec[1] >= vec[2]) || (vec[3] <= vec[0] && vec[2] >= vec[1]) {
+            counter_part_two += 1
+        }
+        if (vec[0] <= vec[2] && vec[1] >= vec[3]) || (vec[2] <= vec[0] && vec[3] >= vec[1]) {
+            counter_part_one += 1;
+        }
+    }
+    println!(
+        "Number of ranges where every element overlaps: {}",
+        counter_part_one
+    );
+    println!(
+        "Number of ranges where any element overlaps: {}",
+        counter_part_two
+    )
 }
 
 fn get_file(filename: &str) -> BufReader<File> {
