@@ -212,8 +212,14 @@ fn day_five() {
 
 fn day_six() {
     let file = include_str!("../inputs/day_6_input");
-    println!("Part 1 - Found marker after {} characters", day_six_get_index(file, 4));
-    println!("Part 2 - Found marker after {} characters", day_six_get_index(file, 14))
+    println!(
+        "Part 1 - Found marker after {} characters",
+        day_six_get_index(file, 4)
+    );
+    println!(
+        "Part 2 - Found marker after {} characters",
+        day_six_get_index(file, 14)
+    )
 }
 
 fn day_six_get_index(file: &str, distinct_characters: usize) -> usize {
@@ -231,6 +237,15 @@ fn day_six_get_index(file: &str, distinct_characters: usize) -> usize {
             buf = comparison.clone();
         }
     }
+        /* Even easier solution: 
+        for i in 0..file.len() - distinct_characters {
+            let mut slice: Vec<u8> = Vec::from(&file[i..i + distinct_characters]);
+            slice.sort();
+            slice.dedup();
+            if slice.len() == distinct_characters {
+                return i + distinct_characters;
+            };
+        }  */
     panic!("Couldn't find marker! Are you sure you picked the right file?");
 }
 
