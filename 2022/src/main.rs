@@ -1,11 +1,11 @@
 use std::{
-    collections::HashMap,
-    fs::{File},
+    collections::{HashMap, HashSet},
+    fs::File,
     io::{BufRead, BufReader},
 };
 
 fn main() {
-    day_five()
+    day_six()
 }
 
 fn day_one(reader: &BufReader<File>) {
@@ -208,6 +208,30 @@ fn day_five() {
     stacks_part_two.iter().for_each(|f| {
         print!("{}", f.to_owned().pop().unwrap());
     })
+}
+
+fn day_six() {
+    let file = include_str!("../inputs/day_6_input");
+    println!("Part 1 - Found marker after {} characters", day_six_get_index(file, 4));
+    println!("Part 2 - Found marker after {} characters", day_six_get_index(file, 14))
+}
+
+fn day_six_get_index(file: &str, distinct_characters: usize) -> usize {
+    let mut buf: Vec<char> = vec![' '; distinct_characters];
+    let mut comparison = buf.clone();
+    for (index, character) in file.chars().into_iter().enumerate() {
+        buf[index % distinct_characters] = character;
+        comparison[index % distinct_characters] = character;
+        if index > 7 {
+            buf.sort();
+            buf.dedup();
+            if buf.len() == distinct_characters {
+                return index + 1;
+            };
+            buf = comparison.clone();
+        }
+    }
+    panic!("Couldn't find marker! Are you sure you picked the right file?");
 }
 
 fn get_file(filename: &str) -> BufReader<File> {
