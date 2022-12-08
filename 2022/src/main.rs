@@ -1,4 +1,5 @@
 use itertools::Itertools;
+use ndarray::Array2;
 use std::{
     borrow::Borrow,
     collections::{btree_map::Values, HashMap, HashSet},
@@ -8,7 +9,7 @@ use std::{
 };
 
 fn main() {
-    day_seven_no_tree()
+    day_8_part_2()
 }
 
 fn day_one(reader: &BufReader<File>) {
@@ -302,24 +303,26 @@ fn day_seven_no_tree() {
     }
     let mut cloned2 = node_list.clone();
     let cloned = node_list.clone();
-    for content in cloned2.iter_mut() {
-        for node in cloned.iter() {
-            if content.1 == node.3.clone() {
-                content.2 = content.2 + node.2;
+    for content in cloned.iter() {
+        for node in cloned2.iter_mut() {
+            if content.1 == node.3.clone() && content.0 == node.0 - 1 {
+                node.2 = content.2 + node.2;
             }
         }
     }
+
     let mut total_sum_cloned = 0;
     for ele in cloned2.clone() {
         total_sum_cloned = total_sum_cloned + ele.2
     }
 
-    let clonedfiltered: Vec<&(u16, String, i32, String, bool)> = cloned2.iter().filter(|f| !f.4).collect();
-    let mut total_sum_cloned_filtered:i64 = 0;
+    let clonedfiltered: Vec<&(u16, String, i32, String, bool)> =
+        cloned2.iter().filter(|f| !f.4).collect();
+    let mut total_sum_cloned_filtered: i64 = 0;
     for ele in clonedfiltered.clone() {
         total_sum_cloned_filtered = total_sum_cloned_filtered + ele.2 as i64
     }
-    
+
     let mut mapp: HashMap<u16, Vec<&(u16, String, i32, String, bool)>> = HashMap::new();
     let grouped = &clonedfiltered.iter().group_by(|f| f.0);
     for (key, it) in grouped {
@@ -336,14 +339,16 @@ fn day_seven_no_tree() {
         }
         mapp.insert(key, concat);
     }
-    let mut total_sum_after_map:i64 = 0;
+
+    let mut total_sum_after_map: i64 = 0;
     for ele in mapp.values().clone() {
         for ele2 in ele {
-        total_sum_after_map = total_sum_after_map + ele2.2 as i64
+            total_sum_after_map = total_sum_after_map + ele2.2 as i64
         }
     }
+
     let mut mapped: HashMap<u16, Vec<(u16, String, i32, String)>> = HashMap::new();
-    for i in 0..mapp.keys().len() + 2 {
+    for i in 0..mapp.keys().len() {
         mapp.borrow().get(&(i as u16)).iter().for_each(|f| {
             let vv = f
                 .iter()
@@ -354,7 +359,6 @@ fn day_seven_no_tree() {
     }
 
     for i in 1..mapped.keys().len() {
-        let vecnames: Vec<String> = vec![];
         let index = (9 - i) as u16;
         let children = mapped.get(&index).unwrap();
         let mut parents = mapped.get(&(index - 1)).unwrap();
@@ -384,7 +388,7 @@ fn day_seven_no_tree() {
         }
         mapped.insert(index - 1, new_vector);
     }
-    let mut adder:i64 = 0;
+    let mut adder: i64 = 0;
     for value in mapped.values() {
         for ele in value {
             if ele.2 <= 100000 {
@@ -394,10 +398,185 @@ fn day_seven_no_tree() {
     }
     mapped.iter().sorted().for_each(|f| {
         println!(" DEPTH {} LENGTH {}", f.0, f.1.len());
-        f.1.iter().for_each(|x| print!(" {}, {}  PARENT {}", x.1, x.2,x.3));
+        f.1.iter()
+            .for_each(|x| print!(" {}, {}  PARENT {}", x.1, x.2, x.3));
         println!()
     });
+    let mut xz = 0;
+    mapped.values().for_each(|f| xz = xz + f.len());
     println!("Total folder size: {}\nTotal size of node list: {}\ntotal sum after first map: {}\nAfter clone: {}\nAfter filter: {}", adder, total_sum, total_sum_after_map, total_sum_cloned, total_sum_cloned_filtered);
+    println!(
+        "Node list length {} \n{}cloned2 len: \n{}clonedfiltered len: \n{}map len: {}",
+        node_list.len(),
+        cloned2.len(),
+        clonedfiltered.len(),
+        xz,
+        total_sum_cloned
+    )
+}
+
+fn day_8() {
+    day_8_part_1();
+    day_8_part_2()
+}
+
+fn day_8_part_1() {
+    let file = include_str!("../inputs/day_8_input");
+    let lines = file.lines();
+    let mut forest: Vec<Vec<u32>> = vec![vec![]];
+    forest.pop();
+    let mut visible = 0;
+    let mut iter2 = 0;
+    let mut length = 0;
+    let mut width = 0;
+    for line in lines {
+        width = 0;
+        forest.push(
+            line.chars()
+                .into_iter()
+                .map(|f| {
+                    width += 1;
+                    f.to_digit(10).unwrap()
+                })
+                .collect_vec(),
+        );
+        length += 1;
+    }
+    for (rowindex, row) in forest.iter().enumerate() {
+        for (treeindex, tree) in row.iter().enumerate() {
+            if treeindex == width {
+                visible += 1;
+                break;
+            }
+            iter2 = iter2 + 1;
+            let row_clone = row.clone();
+            let rows = row_clone.split_at(treeindex);
+            let split_row_0 = rows.0;
+
+            let split_row_1 = &rows.1[1..];
+
+            if treeindex == 0
+                || split_row_0.iter().all(|f| f < tree)
+                || split_row_1.iter().all(|f| f < tree)
+                || rowindex == 0
+                || rowindex == length
+                || treeindex == row.len() - 1
+            {
+                visible = visible + 1;
+            } else {
+                let mut column: Vec<u32> = vec![];
+                let mut visible_bool = false;
+                for iter in &forest {
+                    column.push(iter[treeindex]);
+                }
+                let split_columns = column.split_at(rowindex);
+                let split_col_0 = if rowindex > 0 && split_columns.0.len() == column.len() / 2 + 1 {
+                    &split_columns.0[..rowindex - 1]
+                } else {
+                    split_columns.0
+                };
+                let split_col_1 = &split_columns.1[1..];
+                if split_col_0.iter().all(|f| f < tree)
+                    || split_col_1.iter().all(|f| f < tree)
+                    || rowindex == length - 1
+                {
+                    visible_bool = true
+                }
+                if visible_bool {
+                    visible = visible + 1;
+                };
+            }
+        }
+    }
+    println!("Number of visible trees: {}", visible)
+}
+
+fn day_8_part_2() {
+    let file = include_str!("../inputs/day_8_input");
+    let mut scenic_vec: Vec<u32> = vec![];
+    let lines = file.lines();
+    let mut forest: Vec<Vec<u32>> = vec![vec![]];
+    forest.pop();
+    for line in lines {
+        forest.push(
+            line.chars()
+                .into_iter()
+                .map(|f| {
+                    f.to_digit(10).unwrap()
+                })
+                .collect_vec(),
+        );
+    }
+
+    for (rowindex, row) in forest.iter().enumerate() {
+        for (treeindex, tree) in row.iter().enumerate() {
+            let mut scenic: u32 = 1;
+            let row_clone = row.clone();
+            let rows = row_clone.split_at(treeindex);
+            let split_row_0 = rows.0;
+            let split_row_1 = &rows.1[1..];
+            let mut x = 0;
+
+            for i in 0..split_row_0.len() {
+                x += 1;
+                if split_row_0[split_row_0.len() - 1 - i] >= *tree {
+                    break;
+                }
+            }
+
+            if x != 0 {
+                scenic *= x;
+            }
+            x = 0;
+            for ele in split_row_1 {
+                x += 1;
+                if ele >= tree {
+                    break;
+                }
+            }
+            if x != 0 {
+                scenic *= x
+            }
+
+            let mut column: Vec<u32> = vec![];
+            for iter in &forest {
+                column.push(iter[treeindex]);
+            }
+            let split_columns = column.split_at(rowindex);
+            let split_col_0 = if rowindex > 0 && split_columns.0.len() == column.len() / 2 + 1 {
+                &split_columns.0[..rowindex]
+            } else {
+                split_columns.0
+            };
+            let split_col_1 = &split_columns.1[1..];
+            let mut y = 0;
+            for i in 0..split_col_0.len() {
+                y += 1;
+                if split_col_0[split_col_0.len() - 1 - i] >= *tree {
+                    break;
+                }
+            }
+            if y != 0 {
+                scenic *= y;
+            }
+            y = 0;
+            for ele in split_col_1 {
+                y += 1;
+                if ele >= tree {
+                    break;
+                }
+            }
+            if y != 0 {
+                scenic *= y
+            }
+
+            scenic_vec.push(scenic);
+        }
+    }
+    println!(
+        "Number of visible trees: {}",
+        scenic_vec.iter().max().unwrap()
+    )
 }
 
 fn get_file(filename: &str) -> BufReader<File> {
