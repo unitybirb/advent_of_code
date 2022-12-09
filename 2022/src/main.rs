@@ -581,11 +581,9 @@ fn day_8_part_2() {
 fn day_9(knots: usize) {
     let file = include_str!("../inputs/day_9_input");
     let mut tail_positions: HashSet<Point> = HashSet::new();
-    let mut knot_positions: Vec<Point> = Vec::new();
-    for _ in 0..knots {
-        knot_positions.push(Point {x:0, y:0})
-    }
-    tail_positions.insert(Point {x:0, y:0});
+    let mut knot_positions: Vec<Point> = vec![Point{x:0, y:0}; knots];
+
+    tail_positions.insert(Point { x: 0, y: 0 });
     for line in file.lines() {
         let mut instruction = line.split_whitespace();
         let direction = instruction.next().unwrap();
@@ -608,7 +606,6 @@ fn day_9(knots: usize) {
                 }
             }
             knot_positions = rope;
-
         }
     }
     println!(
@@ -644,51 +641,23 @@ impl GetPoints for Point {
     }
 
     fn new_position(&self, head: Point) -> Point {
-                if self.x < head.x && self.y < head.y {
-                    return Point {
-                        x: self.x + 1,
-                        y: self.y + 1,
-                    };
-                } else if self.x > head.x && self.y < head.y {
-                    return Point {
-                        x: self.x - 1,
-                        y: self.y + 1,
-                    };
-                } else if self.x < head.x && self.y > head.y {
-                    return Point {
-                        x: self.x + 1,
-                        y: self.y - 1,
-                    };
-                } else if self.x > head.x && self.y > head.y {
-                    return Point {
-                        x: self.x - 1,
-                        y: self.y - 1,
-                    };
-                } else if self.x == head.x && self.y < head.y {
-                    return Point {
-                        x: self.x,
-                        y: self.y + 1,
-                    };
-                } else if self.x == head.x && self.y > head.y {
-                    return Point {
-                        x: self.x,
-                        y: self.y - 1,
-                    };
-                } else if self.x < head.x && self.y == head.y {
-                    return Point {
-                        x: self.x + 1,
-                        y: self.y,
-                    };
-                } else if self.x > head.x && self.y == head.y {
-                    return Point {
-                        x: self.x - 1,
-                        y: self.y,
-                    };
-                } else {
-                    panic!()
-                }
-            }
-
+        return Point {
+            x: if self.x < head.x {
+                self.x + 1
+            } else if self.x > head.x {
+                self.x - 1
+            } else {
+                self.x
+            },
+            y: if self.y < head.y {
+                self.y + 1
+            } else if self.y > head.y {
+                self.y - 1
+            } else {
+                self.y
+            },
+        };
+    }
 
     fn move_head(&self, direction: &str) -> Point {
         match direction {
