@@ -694,44 +694,16 @@ fn day_10() {
         let mut input = line.split_whitespace();
         let instruction = input.next().unwrap();
         if instruction == "noop" {
-            println!("Cycle {}", cycle);
-            if [20, 60, 100, 140, 180, 220].contains(&cycle) {
-                signal_strengths.push((cycle, x_register));
-            }
-            if (x_register..x_register + 3).contains(&(cycle % 40)) {
-                row.push('#');
-            } else {
-                row.push('.')
-            }
-            if cycle % 40 == 0 {
-                rows.push(row.clone());
-                row = Vec::new();
-            }
-
-            cycle += 1;
+            compute_cycles(&mut cycle, &mut signal_strengths, x_register, &mut row, &mut rows);
         } else {
             let amount: i32 = input.next().unwrap().parse::<i32>().unwrap();
             for _ in 0..2 {
-                println!("Cycle {}", cycle);
-                if [20, 60, 100, 140, 180, 220].contains(&cycle) {
-                    signal_strengths.push((cycle, x_register));
-                }
-                if (x_register..x_register + 3).contains(&(cycle % 40)) {
-                    row.push('#');
-                } else {
-                    row.push('.')
-                }
-                if cycle % 40 == 0 {
-                    rows.push(row.clone());
-                    row = Vec::new();
-                }
-   
-                cycle += 1;
+                compute_cycles(&mut cycle, &mut signal_strengths, x_register, &mut row, &mut rows);
             }
             x_register += amount
         }
     }
-    
+
     let mut sum = 0;
     signal_strengths.iter().for_each(|f| sum += f.0 * f.1);
     println!("Sum of register values: {}", sum);
@@ -739,6 +711,22 @@ fn day_10() {
         f.iter().for_each(|x| print!("{}", x));
         println!();
     })
+}
+
+fn compute_cycles(cycle: &mut i32, signal_strengths: &mut Vec<(i32, i32)>, x_register: i32, row: &mut Vec<char>, rows: &mut Vec<Vec<char>>) {
+    if [20, 60, 100, 140, 180, 220].contains(&*cycle) {
+        signal_strengths.push((*cycle, x_register));
+    }
+    if (x_register..x_register + 3).contains(&(*cycle % 40)) {
+        row.push('#');
+    } else {
+        row.push('.')
+    }
+    if *cycle % 40 == 0 {
+        rows.push(row.clone());
+        *row = Vec::new();
+    }
+    *cycle += 1;
 }
 
 fn get_file(filename: &str) -> BufReader<File> {
