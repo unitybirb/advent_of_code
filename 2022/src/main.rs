@@ -1,14 +1,17 @@
 use itertools::Itertools;
-use pathfinding::prelude::{bfs, dijkstra};
+use pathfinding::prelude::bfs;
+
 use std::{
     borrow::Borrow,
+    cmp::Ordering,
     collections::{HashMap, HashSet},
     fs::File,
     io::{BufRead, BufReader},
+    str::FromStr,
 };
 
 fn main() {
-    day_12()
+    day_13()
 }
 
 fn day_one(reader: &BufReader<File>) {
@@ -956,7 +959,7 @@ fn day_12() {
         |p| p.successors(nodes.clone(), width),
         |p| p.0 == end.0 && p.1 == end.1,
     );
-    let mut progress = 0;
+    let mut progress = 1;
     let start_vec = nodes.iter().filter(|p| p.2 == 1).collect_vec();
     let result_part_two = start_vec
         .iter()
@@ -967,10 +970,10 @@ fn day_12() {
                 |p| p.0 == end.0 && p.1 == end.1,
             );
             println!(
-                "{} paths out of {} finished, {}% done",
+                "{} paths out of {} finished, {:.2}% done",
                 progress,
                 start_vec.len(),
-                (progress as f64 / start_vec.len() as f64 * 100.0)
+                (progress as f32 / start_vec.len() as f32 * 100.0)
             );
             progress += 1;
             match result {
@@ -993,7 +996,7 @@ struct Pos(i32, i32, i32);
 impl Pos {
     fn successors(&self, nodes: Vec<Pos>, width: usize) -> Vec<Pos> {
         let position = nodes.iter().position(|p| p == self).unwrap();
-        let mut possible_neighbors:Vec<Pos> = Vec::new();
+        let mut possible_neighbors: Vec<Pos> = Vec::new();
         if position > 0 {
             possible_neighbors.push(nodes[position - 1])
         }
@@ -1011,6 +1014,117 @@ impl Pos {
             .into_iter()
             .filter(|p| p.2 < self.2 + 2)
             .collect()
+    }
+}
+
+fn day_13() {
+    let file = include_str!("../inputs/day_13_input");
+    let mut correct = 0;
+    let mut packets = vec![
+        CmpList::List(vec![CmpList::List(vec![CmpList::Number(2)])]),
+        CmpList::List(vec![CmpList::List(vec![CmpList::Number(6)])]),
+    ];
+    for mut line in file.lines().chunks(3).into_iter().enumerate() {
+        let first_line = line.1.next().unwrap().replace("10", "a").parse::<CmpList>();
+        let second_line = line.1.next().unwrap().replace("10", "a").parse::<CmpList>();
+        if first_line <= second_line {
+            correct += line.0 + 1;
+        }
+        packets.push(first_line.unwrap());
+        packets.push(second_line.unwrap());
+    }
+    packets.sort();
+    let found = packets.iter().positions(|f| {
+        f == &CmpList::List(vec![CmpList::List(vec![CmpList::Number(2)])])
+            || f == &CmpList::List(vec![CmpList::List(vec![CmpList::Number(6)])])
+    });
+    println!("Sum of correct packages: {correct}");
+    println!("Decoder key: {}", found.fold(1, |acc, e| acc * (e + 1)))
+}
+
+#[derive(Debug, Eq, PartialEq)]
+enum CmpList {
+    Number(u32),
+    List(Vec<Self>),
+}
+
+impl Ord for CmpList {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        self.partial_cmp(other).unwrap()
+    }
+}
+
+impl PartialOrd for CmpList {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        match (self, other) {
+            (Self::Number(a), Self::Number(b)) => a.partial_cmp(b),
+            (Self::List(a), Self::List(b)) => {
+                let mut iter_a = a.iter();
+                let mut iter_b = b.iter();
+                loop {
+                    match (iter_a.next(), iter_b.next()) {
+                        (Some(a), Some(b)) => {
+                            if let Some(order) = a.partial_cmp(b) {
+                                if order != Ordering::Equal {
+                                    return Some(order);
+                                }
+                            }
+                        }
+                        (Some(_), None) => return Some(Ordering::Greater),
+                        (None, Some(_)) => return Some(Ordering::Less),
+                        (None, None) => return Some(Ordering::Equal),
+                    }
+                }
+            }
+            (Self::Number(a), Self::List(_)) => {
+                Self::List(vec![Self::Number(*a)]).partial_cmp(other)
+            }
+            (Self::List(_), Self::Number(a)) => {
+                self.partial_cmp(&Self::List(vec![Self::Number(*a)]))
+            }
+        }
+    }
+}
+
+impl FromStr for CmpList {
+    type Err = ();
+    fn from_str(line: &str) -> Result<Self, Self::Err> {
+        let mut chars = line.chars().peekable();
+        let mut packet = Self::List(Vec::new());
+        while let Some(c) = chars.next() {
+            match c {
+                '[' => {
+                    let mut depth = 1;
+                    let mut string = String::new();
+                    while depth > 0 {
+                        let c = chars.next().unwrap();
+                        match c {
+                            '[' => depth += 1,
+                            ']' => depth -= 1,
+                            _ => {}
+                        }
+                        string.push(c);
+                    }
+                    if let Ok(p) = string[..string.len() - 1].parse() {
+                        if let Self::List(list) = &mut packet {
+                            list.push(p);
+                        }
+                    }
+                }
+                ',' => {}
+                'a' => {
+                    if let Self::List(list) = &mut packet {
+                        list.push(Self::Number(10))
+                    }
+                }
+                _ => {
+                    if let Self::List(list) = &mut packet {
+                        list.push(Self::Number(c.to_digit(10).unwrap()))
+                    }
+                }
+            }
+        }
+        Ok(packet)
     }
 }
 
