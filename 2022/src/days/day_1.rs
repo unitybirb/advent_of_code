@@ -4,9 +4,7 @@ pub fn execute() {
     let mut calorie_vector: Vec<i32> = vec![];
     for line in file.lines() {
         if !line.is_empty() {
-            adder += line
-                .parse::<i32>()
-                .expect("Couldn't convert to i32");
+            adder += line.parse::<i32>().expect("Couldn't convert to i32");
         } else {
             calorie_vector.push(adder);
             adder = 0;

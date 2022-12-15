@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 pub fn execute() {
-     let file = include_str!("../../inputs/day_2_input");
+    let file = include_str!("../../inputs/day_2_input");
     day_two_part_one(file);
     day_two_part_two(file);
 }

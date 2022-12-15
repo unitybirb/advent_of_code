@@ -9,3 +9,5 @@ edition = "2021"
 itertools = "0.10.5"
 ndarray = "0.15.6"
 pathfinding = "4.0.0"
+
+regex = "1.6.0"

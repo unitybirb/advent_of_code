@@ -34,6 +34,7 @@ pub fn execute() {
     );
     let mut progress = 1;
     let start_vec = nodes.iter().filter(|p| p.2 == 1).collect_vec();
+    /* TODO: improve part 2 */
     let result_part_two = start_vec
         .iter()
         .map(|f| {

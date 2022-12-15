@@ -2,6 +2,7 @@ mod days;
 
 fn main() {
     // execute_all()
+    days::day_15::execute()
 }
 
 fn execute_all() {
@@ -16,10 +17,11 @@ fn execute_all() {
     days::day_9::execute(2);
     days::day_9::execute(10);
     days::day_10::execute();
-    days::day_11::execute(20,false);
-    days::day_11::execute(10000,true);
+    days::day_11::execute(20, false);
+    days::day_11::execute(10000, true);
     days::day_12::execute();
     days::day_13::execute();
     days::day_14::execute(false);
-    days::day_14::execute(true)
+    days::day_14::execute(true);
+    days::day_15::execute()
 }
